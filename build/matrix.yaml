@@ -1,0 +1,89 @@
+# ビルドマトリクス定義
+# 使い方: python build/build_matrix.py --config build/matrix.yaml
+
+version: v2.2.4
+
+# ---- グローバルデフォルト ----
+defaults:
+  ota_url: https://classism.net/xiaozhi/ota/
+  brand: company
+  idf_version: v5.5.4   # xiaozhi-esp32 v2.2.4 は idf >=5.5.2 を要求。v5.4.x は不可
+  xiaozhi_commit: v2.2.4  # 78/xiaozhi-esp32 のタグ
+
+# ---- ブランド定義（OTA URL のみ、ロゴ/ボード別音声は 2026-05-24 廃止） ----
+brands:
+  company:
+    display_name: "xCentury"
+    ota_url: https://classism.net/xiaozhi/ota/
+
+  # 将来の OEM 拡張例
+  # oem_a:
+  #   display_name: "OEM A Brand"
+  #   ota_url: https://ota.oem-a.example/xiaozhi/ota/
+
+  # 本家設定（ロールバック用・検証用）
+  stock:
+    display_name: "Xiaozhi Original"
+    ota_url: https://api.tenclass.net/xiaozhi/ota/
+
+# ---- ja-JP 音声マスタ (発音修正、ja-JP build 時のみ注入) ----
+# 旧「ボード別カスタム起動音」軸を「言語別音声マスタ」に再定義 (2026-05-24)
+ja_jp_audio_master_dir: assets/sounds/locales/ja-JP/
+
+# ---- 言語バリエーション ----
+# STEP1: English のみ
+# STEP2: Japanese を追加
+languages:
+  - English
+  # - Japanese   # ★ STEP2 開始時にコメント解除 ★
+
+# ---- ボードリスト ----
+# Phase 1-A 検証ターゲット → Phase 1-F で全ボード展開
+boards:
+  - sku: waveshare-esp32-s3-touch-lcd-1.85c
+    target: esp32s3
+    resolution: 360x360
+    display_shape: circle
+    enabled: true
+    priority: A
+
+  # Phase 1-F で有効化
+  # - sku: waveshare-esp32-c6-touch-amoled-1.8
+  #   target: esp32c6
+  #   resolution: 368x448
+  #   display_shape: rect
+  #   enabled: false
+  #   priority: B
+
+  # - sku: waveshare-esp32-p4-wifi6-touch-lcd-10.1
+  #   target: esp32p4
+  #   resolution: 1280x800
+  #   display_shape: rect
+  #   enabled: false
+  #   priority: B
+
+# ---- 出力パス命名規則 ----
+output_pattern: "firmware/v{version}_{board}_{lang}_{brand}/merged-binary.bin"
+manifest_pattern: "firmware/v{version}_{board}_{lang}_{brand}/manifest.json"
+
+# ---- ビルドオプション ----
+build_options:
+  clean_before_build: true      # idf.py fullclean を毎回実行
+  parallel_jobs: 1              # 並列ビルド数（安定優先で1推奨）
+  fail_fast: false              # 1件失敗でも次に進む
+  regenerate_manifest: true     # manifest.json を毎回再生成
+
+# ---- QA検証設定 ----
+qa:
+  expected_size_min_mb: 8
+  expected_size_max_mb: 10
+  required_strings:
+    English:
+      - "Connecting"
+      - "Listening"
+    Japanese:
+      - "接続中"
+      - "録音中"
+  forbidden_strings:
+    - "tenclass.net"        # 旧OTA URL が残っていないこと
+  required_ota_url: "classism.net"

@@ -1,0 +1,65 @@
+{
+  "project": "Xiaozhi-Firmware-Moji2.0",
+  "board": "movecall-moji2-esp32c5",
+  "chip": "ESP32-C5",
+  "firmware_version": "v2.2.6 (vanilla, patch revoked)",
+  "build_revision": "v3 (pa_voltage 5.0 reverted per Schematic_Moji2 V1.0)",
+  "language": "ja-JP",
+  "ota_url": "https://classism.net/xiaozhi/ota/",
+  "ja_jp_audio_master": "xCentury (発音修正済)",
+  "wake_words": "WakeNet9s シリーズ (assets.bin 内蔵)",
+  "emoji_pack": "xCentury cat_master_2k v2 (21 感情、assets.bin 内蔵)",
+  "hardware_reference": {
+    "schematic": "Schematic_Moji2 V1.0 (嘉立创EDA, Movecall, 2026-01-24)",
+    "audio_codec_u1": "ES8311 @ +3V3 (LCSC C962342)",
+    "audio_pa_u2": "PA chip @ VBUS (~5V)",
+    "power_tree_doc": "docs/hardware/moji2-schematic-power-tree.md"
+  },
+  "patches_applied": [],
+  "patches_withdrawn": [
+    {
+      "id": "0001-es8311-pa_voltage-3.3.WITHDRAWN",
+      "withdrawn_date": "2026-05-30",
+      "withdrawn_reason": "回路図 Schematic_Moji2 V1.0 で PA chip (U2) は VBUS=5V 駆動と確認、本家 hardcode (pa=5.0, dac=3.3) は HW-correct",
+      "note_file": "patches/WITHDRAWN_NOTES.md"
+    }
+  ],
+  "build": {
+    "date": "2026-05-30T02:54:28Z",
+    "esp_idf": "v5.5.2",
+    "esp_idf_path": "$HOME/esp/esp-idf/",
+    "esptool": "v4.12.dev1",
+    "xiaozhi_esp32_commit": "49ac8a6 (v2.2.6) + comment-only diff for revert audit trail",
+    "elapsed_real_v1": "0m50.787s (initial fullclean)",
+    "elapsed_real_v2": "0m13.788s (pa=3.3 patch)",
+    "elapsed_real_v3": "0m13.275s (pa=5.0 revert)"
+  },
+  "flash_layout": {
+    "0x2000":   {"file": "bootloader.bin",       "size": 17504,       "sha256": "4f07c0d115db54446c7e5d97ed7335f0731912043c7266461cafc06c8ad4c990"},
+    "0x8000":   {"file": "partition-table.bin",  "size": 3072,  "sha256": "4811619cacae08ef2e0e71b7220c6033a346ca5da7ca179082408c963ef530b5"},
+    "0xd000":   {"file": "ota_data_initial.bin", "size": 8192, "sha256": "7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f"},
+    "0x20000":  {"file": "xiaozhi.bin",          "size": 2589008,          "sha256": "256ce94445e143f2c0ae6823bf6dd8d213510dc7d8b648bb93a759e3693cf015"},
+    "0x800000": {"file": "assets.bin",           "size": 2158240,           "sha256": "6106e3ee2e8e9be8fa30966a408518bbbe8f2dd07e254592f03781a3aaaafbca"}
+  },
+  "merged_binary": {
+    "file": "merged-binary.bin",
+    "size": 10546848,
+    "sha256": "1c6a54fa7f0bd1ff097d0bdb5b0505b04d339560a90784d802835e299accbf0a",
+    "flash_offset": "0x0",
+    "flash_command": "python -m esptool --chip esp32c5 -b 460800 write_flash --flash_mode dio --flash_size 16MB --flash_freq 80m 0x0 merged-binary.bin"
+  },
+  "version_history": {
+    "v1_xiaozhi_bin_sha256": "b92c150e7af17cf8e5026c828cd4e984236e6cb9cad7118daefe8e6d1df74840",
+    "v2_xiaozhi_bin_sha256": "355ab5023b1716d584d96cf2c03dfae6b68725b2e09c02556efa329fbf27b263",
+    "v3_xiaozhi_bin_sha256": "256ce94445e143f2c0ae6823bf6dd8d213510dc7d8b648bb93a759e3693cf015",
+    "v3_logic_equivalence": "v3 is logically identical to v1 (pa_voltage=5.0, dac_voltage=3.3). Only differs in comment lines for audit trail."
+  },
+  "next_diagnostic_step": {
+    "issue": "Volume display fixed at 70%, voice commands (set to 100%/20%) do not reach device",
+    "recommended_action": "Capture idf.py monitor log during voice volume command and check for 'AudioCodec: Set output volume to N'",
+    "decision_tree": {
+      "if_log_appears": "Firmware SetOutputVolume IS called -> investigate AudioCodec idle-state guard (dev_=nullptr skip) or NVS write failure",
+      "if_log_missing": "Server (xiaozhi-interpreter) did not dispatch MCP tool -> check server journalctl for tool_call frame"
+    }
+  }
+}

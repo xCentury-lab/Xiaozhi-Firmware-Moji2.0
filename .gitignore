@@ -1,0 +1,103 @@
+# ===== ファームウェアバイナリ（大容量・GitHub 100MB制限対策） =====
+# .bin / .zip 等は global で ignore、ただし firmware/ 配下の manifest.json / .md /
+# flash_args / 設定ファイルは商品化必須なので明示的に管理対象に残す
+*.bin
+*.orig
+*.bak.*
+*.zip
+*.7z
+*.rar
+# 旧 backup ディレクトリは履歴扱いで完全 ignore (容量大、復元時のみ参照)
+firmware/_backup_*/
+# *.backup_* サフィックス付き dir (旧 firmware backup) も完全 ignore
+firmware/*.backup_*/
+
+# OTA 暗号鍵・署名鍵（絶対に含めない）
+*.pem
+*.key
+*.crt
+secrets/
+.env
+.env.*
+!.env.example
+
+# ===== ESP-IDF ビルド成果物 =====
+build/esp-idf-build/
+build/sdkconfig
+build/sdkconfig.old
+build/sdkconfig.ci
+build/dependencies.lock
+build/managed_components/
+sdkconfig
+sdkconfig.old
+
+# ESP-IDF は build/ 以下に生成物を作るが、本リポジトリの build/ には
+# スクリプトを配置するため、idfの典型的出力だけ個別除外
+build/*.bin
+build/*.elf
+build/*.map
+build/*.log
+build/bootloader/
+build/partition_table/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.tox/
+*.egg-info/
+dist/
+build-python/
+
+# ===== Node.js（LVGL image converter 等で利用） =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ===== エディタ / OS =====
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== アセット中間ファイル =====
+assets/**/_intermediate/
+assets/**/*.tmp
+assets/**/*.bak
+
+# ベクターマスター以外の大容量画像は原則管理外
+# （必要に応じてコメント化）
+# assets/logos/**/*.psd
+# assets/logos/**/*.ai
+
+# 音声マスターファイルは大容量のため別管理
+assets/sounds/master/*.wav
+assets/sounds/master/*.aiff
+assets/sounds/master/*.flac
+!assets/sounds/master/README.md
+
+# ===== ビルドログ =====
+*.log
+logs/
+build-failures.log
+build-success.log
+
+# ===== 配布用一時ファイル =====
+dist/
+release/
+_packaging/

@@ -1,0 +1,53 @@
+From: xCentury PAI <xxc@ctoch.jp>
+Date: 2026-05-30
+Subject: [PATCH] es8311_audio_codec: pa_voltage 5.0 -> 3.3 to fix SetVolume no-op
+
+Symptom:
+  Volume control (SetVolume / MCP set_volume) has no audible effect.
+  SetVolume(30) sounds identical to SetVolume(100).
+
+Root cause:
+  In es8311_audio_codec.cc the codec is created with
+    hw_gain.pa_voltage       = 5.0
+    hw_gain.codec_dac_voltage = 3.3
+  managed_components/.../es8311.c then computes:
+    hw_gain = 20*log10(5.0/3.3) ~= +3.6 dB
+    db_value -= hw_gain
+  pushing the ES8311 DAC volume register into its saturation region,
+  so any SetVolume() above ~20 maps to the same register value.
+
+Fix:
+  Set both voltages to 3.3 V (matches the actual Moji 2.0 hardware power tree),
+  so hw_gain becomes 0 dB and SetVolume(0..100) maps linearly to the DAC register.
+
+Side-effect note:
+  This file is shared with every ES8311-based board in xiaozhi-esp32.
+  If other boards (e.g. ESP-VoCat with a 5 V class-D amp) depend on the
+  +3.6 dB offset, they will become ~3.6 dB quieter at the same SetVolume() value.
+  Re-evaluate per board after applying.
+
+Tested on:
+  - movecall-moji2-esp32c5 (Xiaozhi-Firmware-Moji2.0 v2.2.6 / ESP-IDF v5.5.2)
+
+---
+ main/audio/codecs/es8311_audio_codec.cc | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/main/audio/codecs/es8311_audio_codec.cc b/main/audio/codecs/es8311_audio_codec.cc
+index AAAAAAA..BBBBBBB 100644
+--- a/main/audio/codecs/es8311_audio_codec.cc
++++ b/main/audio/codecs/es8311_audio_codec.cc
+@@ -46,8 +46,11 @@ Es8311AudioCodec::Es8311AudioCodec(...
+     es8311_cfg.codec_mode = ESP_CODEC_DEV_WORK_MODE_BOTH;
+     es8311_cfg.pa_pin = pa_pin;
+     es8311_cfg.use_mclk = use_mclk;
+-    es8311_cfg.hw_gain.pa_voltage = 5.0;
+-    es8311_cfg.hw_gain.codec_dac_voltage = 3.3;
++    // xCentury Moji2.0 patch (2026-05-30): pa_voltage 5.0 -> 3.3 to neutralize hw_gain offset.
++    // Reason: hw_gain = 20*log10(5.0/3.3) ~= +3.6dB pushes DAC register into saturation,
++    //         making SetVolume(30) and SetVolume(100) sound identical (volume control no-op).
++    es8311_cfg.hw_gain.pa_voltage = 3.3;
++    es8311_cfg.hw_gain.codec_dac_voltage = 3.3;
+     es8311_cfg.pa_reverted = pa_inverted_;
+     codec_if_ = es8311_codec_new(&es8311_cfg);
+ 

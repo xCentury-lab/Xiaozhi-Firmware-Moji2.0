@@ -2,6 +2,8 @@
 # .bin / .zip 等は global で ignore、ただし firmware/ 配下の manifest.json / .md /
 # flash_args / 設定ファイルは商品化必須なので明示的に管理対象に残す
 *.bin
+# 例外: firmware/ 配下の assets.bin は production master なので Git 管理 (README 記載)
+!firmware/**/assets.bin
 *.orig
 *.bak.*
 *.zip

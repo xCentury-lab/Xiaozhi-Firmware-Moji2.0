@@ -3,12 +3,14 @@
   "board": "movecall-moji2-esp32c5",
   "chip": "ESP32-C5",
   "firmware_version": "v2.2.6 (vanilla, patch revoked)",
-  "build_revision": "v3 (pa_voltage 5.0 reverted per Schematic_Moji2 V1.0)",
+  "build_revision": "v5 (assets.bin のみ差替: emoji 64x64 再生成。app/bootloader/partition は v4 から不変、merge_bin のみ再実行)",
   "language": "ja-JP",
   "ota_url": "https://classism.net/xiaozhi/ota/",
   "ja_jp_audio_master": "xCentury (発音修正済)",
-  "wake_words": "WakeNet9s シリーズ (assets.bin 内蔵)",
-  "emoji_pack": "xCentury cat_master_2k v2 (21 感情、assets.bin 内蔵)",
+  "wake_words": "wn9s_alexa (WakeNet9s, assets.bin 内蔵)",
+  "emoji_pack": "自定义表情包 21 感情 (assets.bin 内蔵)",
+  "display_resolution": "360x360",
+  "font": "puhui deepseek_20_4",
   "hardware_reference": {
     "schematic": "Schematic_Moji2 V1.0 (嘉立创EDA, Movecall, 2026-01-24)",
     "audio_codec_u1": "ES8311 @ +3V3 (LCSC C962342)",
@@ -25,26 +27,25 @@
     }
   ],
   "build": {
-    "date": "2026-05-30T02:54:28Z",
+    "date": "2026-05-31",
     "esp_idf": "v5.5.2",
     "esp_idf_path": "$HOME/esp/esp-idf/",
     "esptool": "v4.12.dev1",
-    "xiaozhi_esp32_commit": "49ac8a6 (v2.2.6) + comment-only diff for revert audit trail",
-    "elapsed_real_v1": "0m50.787s (initial fullclean)",
-    "elapsed_real_v2": "0m13.788s (pa=3.3 patch)",
-    "elapsed_real_v3": "0m13.275s (pa=5.0 revert)"
+    "xiaozhi_esp32_commit": "49ac8a6 (v2.2.6, vanilla)",
+    "procedure": "docs/operations/firmware-build-v2.2.6-esp32c5.md (fullclean -> set-target esp32c5 -> Step2.5 ja-JP master swap -> sdkconfig append -> build -> merge_bin)",
+    "note_v4": "managed_components を pristine 再DL (旧 C 配列 emoji パッチ等の hash 不一致を解消)。assets.bin はユーザ再生成版を 0x800000 に統合"
   },
   "flash_layout": {
-    "0x2000":   {"file": "bootloader.bin",       "size": 17504,       "sha256": "4f07c0d115db54446c7e5d97ed7335f0731912043c7266461cafc06c8ad4c990"},
+    "0x2000":   {"file": "bootloader.bin",       "size": 17504,       "sha256": "63c89adda47766b48f81720dd525b8c6a07947fad421af811937a49c565c9005"},
     "0x8000":   {"file": "partition-table.bin",  "size": 3072,  "sha256": "4811619cacae08ef2e0e71b7220c6033a346ca5da7ca179082408c963ef530b5"},
     "0xd000":   {"file": "ota_data_initial.bin", "size": 8192, "sha256": "7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f"},
-    "0x20000":  {"file": "xiaozhi.bin",          "size": 2589008,          "sha256": "256ce94445e143f2c0ae6823bf6dd8d213510dc7d8b648bb93a759e3693cf015"},
-    "0x800000": {"file": "assets.bin",           "size": 2158240,           "sha256": "6106e3ee2e8e9be8fa30966a408518bbbe8f2dd07e254592f03781a3aaaafbca"}
+    "0x20000":  {"file": "xiaozhi.bin",          "size": 2850544,          "sha256": "4f4a67339f2775e6024f7e14479c34b621b270e19ef8c9a62554f2f25da0ba9a"},
+    "0x800000": {"file": "assets.bin",           "size": 1692792,           "sha256": "4da2b571380296158d0e37be3e74bfa2476dc9a98c9725213e1267a6daa32e19"}
   },
   "merged_binary": {
     "file": "merged-binary.bin",
-    "size": 10546848,
-    "sha256": "1c6a54fa7f0bd1ff097d0bdb5b0505b04d339560a90784d802835e299accbf0a",
+    "size": 10081400,
+    "sha256": "084561911d1c07bdda84b2d7cfd35acf7cea5c6e2fee918384dfe5b527bb2012",
     "flash_offset": "0x0",
     "flash_command": "python -m esptool --chip esp32c5 -b 460800 write_flash --flash_mode dio --flash_size 16MB --flash_freq 80m 0x0 merged-binary.bin"
   },
@@ -52,7 +53,10 @@
     "v1_xiaozhi_bin_sha256": "b92c150e7af17cf8e5026c828cd4e984236e6cb9cad7118daefe8e6d1df74840",
     "v2_xiaozhi_bin_sha256": "355ab5023b1716d584d96cf2c03dfae6b68725b2e09c02556efa329fbf27b263",
     "v3_xiaozhi_bin_sha256": "256ce94445e143f2c0ae6823bf6dd8d213510dc7d8b648bb93a759e3693cf015",
-    "v3_logic_equivalence": "v3 is logically identical to v1 (pa_voltage=5.0, dac_voltage=3.3). Only differs in comment lines for audit trail."
+    "v3_logic_equivalence": "v3 is logically identical to v1 (pa_voltage=5.0, dac_voltage=3.3). Only differs in comment lines for audit trail.",
+    "v4_xiaozhi_bin_sha256": "4f4a67339f2775e6024f7e14479c34b621b270e19ef8c9a62554f2f25da0ba9a",
+    "v4_note": "2026-05-31 clean rebuild on vanilla v2.2.6 (managed_components pristine 再DL). xiaozhi.bin が v3 と異なるのは pristine fonts/components 由来。assets.bin 再生成版 (360x360, puhui_deepseek_20_4, wn9s_alexa, 21 感情)。",
+    "v5_note": "2026-05-31 assets.bin のみ差替 (emoji 64x64 再生成)。app=xiaozhi.bin は v4 と同一 (sha 4f4a6733...)、再コンパイルなしで merge_bin のみ再実行。assets.bin sha=4da2b571..., merged sha=08456191..."
   },
   "next_diagnostic_step": {
     "issue": "Volume display fixed at 70%, voice commands (set to 100%/20%) do not reach device",
